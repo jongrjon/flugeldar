@@ -109,25 +109,35 @@
             z-index: 1000;
             display: none;
         }
-        .details-row iframe.detail-video {
-            width: 100%; /* Full width */
-            aspect-ratio: 16 / 9; /* Enforces 16:9 aspect ratio */
-            border: none;
+        .details-row {
+            display: none; /* Hidden by default */
+            background-color: #f9f9f9;
+            border-top: 1px solid #ddd;
         }
 
+        .details-row td {
+            padding: 10px;
+            max-width: 100%; /* Ensure content fits within the available space */
+        }
+
+        /* Responsive images */
         .details-row img.detail-image {
-            width: 100%; /* Full width of the container */
-            height: auto; /* Allow scaling */
-            aspect-ratio: 16 / 9; /* Match video aspect ratio */
-            object-fit:scale-down; /* Ensures the image fills the space proportionally */
-            max-height: 300px; /* Optional: Cap the height */
+            width: 100%; /* Scale image to fit the container */
+            height: auto; /* Maintain aspect ratio */
+            object-fit: contain; /* Ensure the image is scaled proportionally */
         }
 
-        .details-row .box {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #ffffff;
+        /* Responsive videos */
+        .details-row iframe.detail-video {
+            width: 100%; /* Scale video to fit the container */
+            height: auto; /* Adjust height dynamically */
+            aspect-ratio: 16 / 9; /* Maintain 16:9 aspect ratio */
+        }
+
+        /* Text wrapping */
+        .details-row .content {
+            word-wrap: break-word; /* Break long words */
+            white-space: normal; /* Ensure text wraps naturally */
         }
         .sort-icon {
             margin-left: 8px;
@@ -139,7 +149,104 @@
             opacity: 1;
         }
 
+        .table {
+            width: 100%; /* Full width on larger screens */
+        }
 
+        /* Narrow table for mobile */
+        @media (max-width: 768px) {
+            .table.is-narrow-mobile {
+                width: auto; /* Narrow table for mobile */
+                table-layout: auto; /* Allow cells to resize */
+            }
+        }
+        .table-container {
+            overflow-x: auto; /* Enable horizontal scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+        }
+
+        .table {
+            width: 100%; /* Ensure the table adjusts to the container */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+        .is-hidden-touch {
+            display: block;
+        }
+
+        .is-hidden-desktop {
+            display: none;
+        }
+
+        /* Show cards on mobile */
+        @media (max-width: 768px) {
+            .is-hidden-touch {
+                display: none !important;
+            }
+
+            .is-hidden-desktop {
+                display: block !important;
+            }
+        }
+
+        /* Style for mobile cards */
+        .card {
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f5f5f5;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+        }
+
+        .card-footer {
+            padding: 0.5rem 1rem;
+            background-color: #f9f9f9;
+            text-align: right;
+        }
+        .card-content .details-row {
+            display: flex;
+            gap: 1rem; /* Adjust the gap between items */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            background-color: #FFF;
+            border: none;
+        }
+
+        .card-content .details-row span {
+            white-space: nowrap; /* Prevent breaking within a span */
+        }
+        .field {
+            margin-bottom: 1rem; /* Add space between filter fields */
+        }
+        .dropdown.is-hidden-desktop {
+            display: none;
+        }
+
+        /* Show dropdown on mobile */
+        @media (max-width: 768px) {
+            .dropdown.is-hidden-desktop {
+                display: block;
+            }
+        }
+
+    /* Mobile-specific adjustments */
+    @media (max-width: 768px) {
+        .field {
+            margin-bottom: 1.5rem;
+        }
+
+        .range-slider input[type="range"] {
+            width: 100%; /* Ensure sliders use full width */
+        }
+
+        .color-dropdown {
+            position: static; /* Align dropdown with mobile layout */
+            margin-top: 0.5rem;
+        }
+    }
     </style>
 </head>
 <body>
@@ -155,8 +262,9 @@
             <h2 class="subtitle has-text-centered mt-4">Gleðilegt nýtt ár!</h2>
         </div>
         <!-- Filters Section -->
-        <div class="field is-grouped">
-            <div class="field">
+        <div class="field is-grouped-multiline">
+            <!-- Price Range -->
+            <div class="is-fullwidth">
                 <label class="label">Verðbil:</label>
                 <div class="control">
                     <div class="range-slider">
@@ -168,44 +276,105 @@
                     </div>
                 </div>
             </div>
-            <div class="field">
+        
+            <!-- Search -->
+            <div class="is-fullwidth">
                 <label class="label">Leita:</label>
                 <div class="control">
                     <input id="searchBox" type="text" class="input" placeholder="Leitaðu eftir nafni, lýsingu eða öðru...">
                 </div>
             </div>
-            <div class="color-filter">
+        
+            <!-- Colors -->
+            <div class=" is-fullwidth">
                 <label class="label">Litir:</label>
-                <button class="button is-small" id="toggleColorDropdown">Velja</button>
-                <div id="colorDropdown" class="color-dropdown"></div>
+                <div class="control">
+                    <button class="button is-small" id="toggleColorDropdown">Velja</button>
+                    <div id="colorDropdown" class="color-dropdown"></div>
+                </div>
+            </div>
+            <div class=" is-fullwidth is-hidden-desktop">
+                <label class="label">Röðun:</label>
+                <div class="dropdown is-fullwidth" id="sortDropdown">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Raða eftir</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a href="#" class="dropdown-item" data-sort="NAME">
+                                Nafni
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="PRICE">
+                                Verði
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="SHOTS">
+                                Fjölda Skota
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="DURATION">
+                                Lengd í sekúndum
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="WEIGHT">
+                                Þyngd
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="NOISE">
+                                Hávaða
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="VISUAL">
+                                Fegurð
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="SECONDS_PER_SHOT">
+                                Tíma (sek) per skot
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="PRICE_PER_SHOT">
+                                Verði per skot
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="PRICE_PER_SECOND">
+                                Verði per sek
+                            </a>
+                            <a href="#" class="dropdown-item" data-sort="PRICE_PER_KG">
+                                Verði per kg
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
     <section>
         <!-- Data Table -->
-        <table class="table is-hoverable is-fullwidth">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th onclick="sortTable('ID')">ID <i class="fas sort-icon" data-field="ID"></i></th>
-                    <th onclick="sortTable('NAME')">Nafn <i class="fas sort-icon" data-field="NAME"></i></th>
-                    <th onclick="sortTable('PRICE')">Verð <i class="fas sort-icon" data-field="PRICE"></i></th>
-                    <th>Litir</th>
-                    <th onclick="sortTable('SHOTS')">Skot<i class="fas sort-icon" data-field="SHOTS"></i></th>
-                    <th onclick="sortTable('DURATION')">Lengd(sek)<i class="fas sort-icon" data-field="DURATION"></i></th>
-                    <th onclick="sortTable('NOISE')">Hávaði<i class="fas sort-icon" data-field="NOISE"></i></th>
-                    <th onclick="sortTable('VISUAL')">Fegurð<i class="fas sort-icon" data-field="VISUAL"></i></th>
-                    <th onclick="sortTable('WEIGHT')">Þyngd<i class="fas sort-icon" data-field="WEIGHT"></i></th>
-                    <th onclick="sortTable('SECONDS_PER_SHOT')">Sek/Skot<i class="fas sort-icon" data-field="SECONDS_PER_SHOT"></i></th>
-                    <th onclick="sortTable('PRICE_PER_SHOT')">Verð/Skot<i class="fas sort-icon" data-field="PRICE_PER_SHOT"></i></th>
-                    <th onclick="sortTable('PRICE_PER_SECOND')">Verð/Sek <i class="fas sort-icon" data-field="PRICE_PER_SECOND"></i></th>
-                    <th onclick="sortTable('PRICE_PER_KG')">Verð/KG <i class="fas sort-icon" data-field="PRICE_PER_KG"></i></th>
-                </tr>
-            </thead>
-            <tbody id="dataBody">
-                <!-- Rows will be dynamically injected -->
-            </tbody>
-        </table>
+        <div class="table-container  is-hidden-touch">
+            <table class="table is-hoverable is-fullwidth is-narrow-mobile">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th onclick="sortTable('ID')" class="is-hidden-mobile">ID <i class="fas sort-icon" data-field="ID"></i></th>
+                        <th onclick="sortTable('NAME')">Nafn <i class="fas sort-icon" data-field="NAME"></i></th>
+                        <th onclick="sortTable('PRICE')">Verð <i class="fas sort-icon" data-field="PRICE"></i></th>
+                        <th>Litir</th>
+                        <th onclick="sortTable('SHOTS')">Skot<i class="fas sort-icon" data-field="SHOTS"></i></th>
+                        <th onclick="sortTable('DURATION')">Lengd(sek)<i class="fas sort-icon" data-field="DURATION"></i></th>
+                        <th onclick="sortTable('NOISE')">Hávaði<i class="fas sort-icon" data-field="NOISE"></i></th>
+                        <th onclick="sortTable('VISUAL')">Fegurð<i class="fas sort-icon" data-field="VISUAL"></i></th>
+                        <th onclick="sortTable('WEIGHT')" class="is-hidden-mobile">Þyngd<i class="fas sort-icon" data-field="WEIGHT"></i></th>
+                        <th onclick="sortTable('SECONDS_PER_SHOT')" class="is-hidden-mobile">Sek/Skot<i class="fas sort-icon" data-field="SECONDS_PER_SHOT"></i></th>
+                        <th onclick="sortTable('PRICE_PER_SHOT')" class="is-hidden-mobile">Verð/Skot<i class="fas sort-icon" data-field="PRICE_PER_SHOT"></i></th>
+                        <th onclick="sortTable('PRICE_PER_SECOND')" class="is-hidden-mobile">Verð/Sek <i class="fas sort-icon" data-field="PRICE_PER_SECOND"></i></th>
+                        <th onclick="sortTable('PRICE_PER_KG')" class="is-hidden-mobile">Verð/KG <i class="fas sort-icon" data-field="PRICE_PER_KG"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody">
+                    <!-- Rows will be dynamically injected -->
+                </tbody>
+            </table>
+        </div>
+        <div id="cardView" class="is-hidden-desktop">
+            <!-- Cards dynamically injected -->
+        </div>
 
         <button id="compareButton" class="button is-primary" style="display: none;">Bera saman</button>
     </section>

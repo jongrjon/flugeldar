@@ -101,6 +101,7 @@ function applyFilters() {
 
     sortTable(currentSortField, false);
     renderTable(filteredData);
+    renderCards(filteredData);
 }
 
 function applySearchFilter() {
@@ -137,7 +138,7 @@ function renderTable(dataToRender) {
         const row = $(` 
             <tr>
                 <td><input type="checkbox" data-id="${item.ID}"></td>
-                <td>${item.ID}</td>
+                <td class="is-hidden-mobile">${item.ID}</td>
                 <td class="name-cell">${item.NAME}</td>
                 <td>${formatPriceIcelandic(item.PRICE)}</td>
                 <td>${item.COLORS.join(", ")}</td>
@@ -145,11 +146,11 @@ function renderTable(dataToRender) {
                 <td>${item.DURATION}</td>
                 <td>${item.NOISE}</td>
                 <td>${item.VISUAL}</td>
-                <td>${item.WEIGHT || "N/A"}</td>
-                <td>${item.SECONDS_PER_SHOT.toFixed(2)}</td>
-                <td>${item.PRICE_PER_SHOT.toFixed(2)}</td>
-                <td>${item.PRICE_PER_SECOND.toFixed(2)}</td>
-                <td>${item.PRICE_PER_KG !== "#DIV/0!" ? item.PRICE_PER_KG.toFixed(2) : "N/A"}</td>
+                <td class="is-hidden-mobile">${item.WEIGHT || "N/A"}</td>
+                <td class="is-hidden-mobile">${item.SECONDS_PER_SHOT.toFixed(2)}</td>
+                <td class="is-hidden-mobile">${item.PRICE_PER_SHOT.toFixed(2)}</td>
+                <td class="is-hidden-mobile">${item.PRICE_PER_SECOND.toFixed(2)}</td>
+                <td class="is-hidden-mobile">${item.PRICE_PER_KG !== "#DIV/0!" ? item.PRICE_PER_KG.toFixed(2) : "N/A"}</td>
             </tr>
         `);
 
@@ -185,6 +186,85 @@ function renderTable(dataToRender) {
     });
 
     updateCheckboxState(); // Check if the limit is reached
+}
+
+function renderCards(dataToRender) {
+    const cardContainer = $("#cardView");
+    cardContainer.empty();
+
+    if (!dataToRender.length) {
+        cardContainer.append(`<p>Engar vörur fundust.</p>`);
+        return;
+    }
+
+    let currentlyOpenCard = null; // Track the currently open card
+
+    dataToRender.forEach(item => {
+        const card = $(`
+            <div class="card">
+                <div class="card-header">
+                    <img src="${item['IMAGE URL']}" alt="Mynd ekki tiltæk" style="max-width: 30%;">
+                    <h2 class="subtitle">${item.NAME}</h2>
+                </div>
+                <div class="card-content">
+                    <div class="details-row">
+                        <span><strong>Verð:</strong> ${formatPriceIcelandic(item.PRICE)}</span>
+                        <span><strong>Skot:</strong> ${item.SHOTS}</span>
+                        <span><strong>Lengd:</strong> ${item.DURATION}</span>
+                    </div>
+                    <p><strong>Litir:</strong> ${item.COLORS.join(", ")}</p>
+                    <div class="card-details" style="display: none;">
+                    <div class="details-row">
+                        <span><strong>Hávaði:</strong> ${item.NOISE}</span>
+                        <span><strong>Fegurð:</strong> ${item.VISUAL}</span>
+                        <span><strong>Þyngd:</strong> ${item.WEIGHT}</span>
+                    </div>
+                    <div class="details-row">
+                        <span><strong>sek/skot:</strong> ${item.SECONDS_PER_SHOT}</span>
+                        <span><strong>kr/skot:</strong> ${item.PRICE_PER_SHOT}</span>
+                    </div>
+                    <div class="details-row">
+                        <span><strong>kr/sek:</strong> ${item.PRICE_PER_SECOND}</span>
+                        <span><strong>kr/kg:</strong> ${item.PRICE_PER_KG}</span>
+                    </div>
+                    <br>
+                    <span>${item.DESCRIPTION}</span>
+                    <iframe src="${convertToEmbedURL(item['VIDEO URL'])}" allowfullscreen class="card-video"></iframe>
+                </div>
+                </div>
+                <div class="card-footer">
+                    <button class="button is-small is-link expand-details">Sjá nánar</button>
+                </div>
+            </div>
+        `);
+
+        // Expand/Collapse functionality
+        card.find(".expand-details").on("click", function () {
+            const details = $(this).closest(".card").find(".card-details");
+            const button = $(this); // Reference to the clicked button
+        
+            // If there's an open card and it's not the same as the current one, close it
+            if (currentlyOpenCard && currentlyOpenCard[0] !== details[0]) {
+                currentlyOpenCard.hide();
+                // Reset the button text for the previously open card
+                currentlyOpenCard.closest(".card").find(".expand-details").text("Sjá nánar");
+            }
+        
+            // Toggle the current card's details
+            details.toggle();
+        
+            // Update button text based on the visibility of the details
+            if (details.is(":visible")) {
+                button.text("Loka");
+                currentlyOpenCard = details; // Update the currently open card tracker
+            } else {
+                button.text("Sjá nánar");
+                currentlyOpenCard = null; // No card is open
+            }
+        });
+
+        cardContainer.append(card);
+    });
 }
 
 // Convert video URLs to embeddable format
@@ -357,6 +437,22 @@ function updateSortIcons(activeField) {
         }
     });
 }
+
+$("#sortDropdown .dropdown-trigger").on("click", function () {
+    $("#sortDropdown").toggleClass("is-active"); // Toggle the dropdown menu visibility
+});
+
+// Sort items when an option is clicked
+$("#sortDropdown .dropdown-item").on("click", function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    const sortField = $(this).data("sort"); // Get the field to sort by
+    currentSortField = sortField; // Update the global sort field
+    currentSortOrder = "asc"; // Default to ascending order on mobile
+
+    sortTable(sortField); // Call the existing sort function for consistency
+    renderCards(filteredData); // Re-render cards to reflect new sorting
+});
 
 // Initialize the app
 $(document).ready(() => {
