@@ -213,20 +213,41 @@
         }
 
     /* Mobile-specific adjustments */
-    @media (max-width: 768px) {
-        .field {
-            margin-bottom: 1.5rem;
+        @media (max-width: 768px) {
+            .field {
+                margin-bottom: 1.5rem;
+            }
+
+            .range-slider input[type="range"] {
+                width: 100%; /* Ensure sliders use full width */
+            }
+
+            .color-dropdown {
+                position: static; /* Align dropdown with mobile layout */
+                margin-top: 0.5rem;
+            }
+        }
+        .name-cell {
+            cursor: pointer; /* Show pointing hand */
         }
 
-        .range-slider input[type="range"] {
-            width: 100%; /* Ensure sliders use full width */
+        /* Slider drag points */
+        input[type="range"]::-webkit-slider-thumb {
+            cursor: pointer; /* For WebKit browsers (Chrome, Safari, etc.) */
         }
 
-        .color-dropdown {
-            position: static; /* Align dropdown with mobile layout */
-            margin-top: 0.5rem;
+        input[type="range"]::-moz-range-thumb {
+            cursor: pointer; /* For Firefox */
         }
-    }
+
+        input[type="range"]::-ms-thumb {
+            cursor: pointer; /* For Internet Explorer */
+        }
+
+        /* Sortable table headers */
+        .table th.sortable {
+            cursor: pointer; /* Show pointing hand on hover */
+        }
     </style>
 </head>
 <body>
@@ -332,19 +353,19 @@
                 <thead>
                     <tr>
                         <th></th>
-                        <th onclick="sortTable('ID')" class="is-hidden-mobile">Nr <i class="fas sort-icon" data-field="ID"></i></th>
-                        <th onclick="sortTable('NAME')">Nafn <i class="fas sort-icon" data-field="NAME"></i></th>
-                        <th onclick="sortTable('PRICE')">Verð <i class="fas sort-icon" data-field="PRICE"></i></th>
+                        <th class="sortable" onclick="sortTable('ID')" class="is-hidden-mobile">Nr <i class="fas sort-icon" data-field="ID"></i></th>
+                        <th class="sortable" onclick="sortTable('NAME')">Nafn <i class="fas sort-icon" data-field="NAME"></i></th>
+                        <th class="sortable" onclick="sortTable('PRICE')">Verð <i class="fas sort-icon" data-field="PRICE"></i></th>
                         <th>Litir</th>
-                        <th onclick="sortTable('SHOTS')">Skot<i class="fas sort-icon" data-field="SHOTS"></i></th>
-                        <th onclick="sortTable('DURATION')">Lengd(sek)<i class="fas sort-icon" data-field="DURATION"></i></th>
-                        <th onclick="sortTable('NOISE')">Hávaði<i class="fas sort-icon" data-field="NOISE"></i></th>
-                        <th onclick="sortTable('VISUAL')">Fegurð<i class="fas sort-icon" data-field="VISUAL"></i></th>
-                        <th onclick="sortTable('WEIGHT')" class="is-hidden-mobile">Þyngd<i class="fas sort-icon" data-field="WEIGHT"></i></th>
-                        <th onclick="sortTable('SECONDS_PER_SHOT')" class="is-hidden-mobile">Sek/Skot<i class="fas sort-icon" data-field="SECONDS_PER_SHOT"></i></th>
-                        <th onclick="sortTable('PRICE_PER_SHOT')" class="is-hidden-mobile">Verð/Skot<i class="fas sort-icon" data-field="PRICE_PER_SHOT"></i></th>
-                        <th onclick="sortTable('PRICE_PER_SECOND')" class="is-hidden-mobile">Verð/Sek <i class="fas sort-icon" data-field="PRICE_PER_SECOND"></i></th>
-                        <th onclick="sortTable('PRICE_PER_KG')" class="is-hidden-mobile">Verð/KG <i class="fas sort-icon" data-field="PRICE_PER_KG"></i></th>
+                        <th class="sortable" onclick="sortTable('SHOTS')">Skot<i class="fas sort-icon" data-field="SHOTS"></i></th>
+                        <th class="sortable" onclick="sortTable('DURATION')">Lengd(sek)<i class="fas sort-icon" data-field="DURATION"></i></th>
+                        <th class="sortable" onclick="sortTable('NOISE')">Hávaði<i class="fas sort-icon" data-field="NOISE"></i></th>
+                        <th class="sortable" onclick="sortTable('VISUAL')">Fegurð<i class="fas sort-icon" data-field="VISUAL"></i></th>
+                        <th class="sortable" onclick="sortTable('WEIGHT')" class="is-hidden-mobile">Þyngd<i class="fas sort-icon" data-field="WEIGHT"></i></th>
+                        <th class="sortable" onclick="sortTable('SECONDS_PER_SHOT')" class="is-hidden-mobile">Sek/Skot<i class="fas sort-icon" data-field="SECONDS_PER_SHOT"></i></th>
+                        <th class="sortable" onclick="sortTable('PRICE_PER_SHOT')" class="is-hidden-mobile">Verð/Skot<i class="fas sort-icon" data-field="PRICE_PER_SHOT"></i></th>
+                        <th class="sortable" onclick="sortTable('PRICE_PER_SECOND')" class="is-hidden-mobile">Verð/Sek <i class="fas sort-icon" data-field="PRICE_PER_SECOND"></i></th>
+                        <th class="sortable" onclick="sortTable('PRICE_PER_KG')" class="is-hidden-mobile">Verð/KG <i class="fas sort-icon" data-field="PRICE_PER_KG"></i></th>
                     </tr>
                 </thead>
                 <tbody id="dataBody">
