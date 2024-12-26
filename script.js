@@ -126,6 +126,7 @@ function applySearchFilter() {
 }
 
 // Render the table
+
 function renderTable(dataToRender) {
     const tbody = $("#dataBody");
     tbody.empty();
@@ -136,7 +137,7 @@ function renderTable(dataToRender) {
     }
 
     dataToRender.forEach(item => {
-        const row = $(` 
+        const row = $(`
             <tr>
                 <td><input type="checkbox" data-id="${item.ID}"></td>
                 <td class="is-hidden-mobile">${item.ID}</td>
@@ -155,38 +156,55 @@ function renderTable(dataToRender) {
             </tr>
         `);
 
-        const detailsRow = $(` 
-            <tr class="details-row">
-                <td colspan="14">
-                    <div class="box">
-                        <div class="columns">
-                            <div class="column is-one-third">
-                                <img src="${item['IMAGE URL']}" alt="Image not available" class="detail-image">
-                            </div>
-                            <div class="column">
-                                <p class="content">${item.DESCRIPTION}</p>
-                            </div>
-                            <div class="column is-one-third">
-                                <iframe src="${convertToEmbedURL(item['VIDEO URL'])}" allowfullscreen class="detail-video"></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        `);
+        // Attach click event to the name-cell to toggle details row
+        row.find(".name-cell").on("click", function () {
+            const existingDetailsRow = row.next(".details-row");
 
-        row.find(".name-cell").on("click", () => {
-            if (currentlyOpenRow && currentlyOpenRow !== detailsRow) {
-                currentlyOpenRow.hide();
+            if (existingDetailsRow.length) {
+                existingDetailsRow.remove();
+                currentlyOpenRow = null;
+                return;
             }
-            detailsRow.toggle();
-            currentlyOpenRow = detailsRow.is(":visible") ? detailsRow : null;
+
+            const detailsRow = createDetailsRow(item);
+            row.after(detailsRow);
+            detailsRow.show(); // Ensure it is visible
+            detailsRow[0].offsetHeight; // Trigger reflow
+            currentlyOpenRow = detailsRow;
+
+            // Log the current DOM state
         });
+
         row.find("input[type='checkbox']").on("change", handleSelection);
-        tbody.append(row, detailsRow);
+
+        tbody.append(row);
     });
 
-    updateCheckboxState(); // Check if the limit is reached
+    updateCheckboxState();
+}
+
+
+
+function createDetailsRow(item) {
+    return $(`
+        <tr class="details-row">
+            <td colspan="14">
+                <div class="box">
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <img src="${item['IMAGE URL']}" alt="Image not available" class="detail-image">
+                        </div>
+                        <div class="column">
+                            <p class="content">${item.DESCRIPTION}</p>
+                        </div>
+                        <div class="column is-one-third">
+                            <iframe src="${convertToEmbedURL(item['VIDEO URL'])}" allowfullscreen class="detail-video"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </td>
+         </tr>
+    `);
 }
 
 function renderCards(dataToRender) {
@@ -214,24 +232,6 @@ function renderCards(dataToRender) {
                         <span><strong>Lengd:</strong> ${item.DURATION}</span>
                     </div>
                     <p><strong>Litir:</strong> ${item.COLORS.join(", ")}</p>
-                    <div class="card-details" style="display: none;">
-                    <div class="details-row">
-                        <span><strong>Hávaði:</strong> ${item.NOISE}</span>
-                        <span><strong>Fegurð:</strong> ${item.VISUAL}</span>
-                        <span><strong>Þyngd:</strong> ${item.WEIGHT}</span>
-                    </div>
-                    <div class="details-row">
-                        <span><strong>sek/skot:</strong> ${item.SECONDS_PER_SHOT}</span>
-                        <span><strong>kr/skot:</strong> ${item.PRICE_PER_SHOT}</span>
-                    </div>
-                    <div class="details-row">
-                        <span><strong>kr/sek:</strong> ${item.PRICE_PER_SECOND}</span>
-                        <span><strong>kr/kg:</strong> ${item.PRICE_PER_KG}</span>
-                    </div>
-                    <br>
-                    <span>${item.DESCRIPTION}</span>
-                    <iframe src="${convertToEmbedURL(item['VIDEO URL'])}" allowfullscreen class="card-video"></iframe>
-                </div>
                 </div>
                 <div class="card-footer">
                     <button class="button is-small is-link expand-details">Sjá nánar</button>
@@ -241,40 +241,70 @@ function renderCards(dataToRender) {
 
         // Expand/Collapse functionality
         card.find(".expand-details").on("click", function () {
-            const details = $(this).closest(".card").find(".card-details");
+            const cardBody = $(this).closest(".card").find(".card-content");
             const button = $(this); // Reference to the clicked button
-        
-            // If there's an open card and it's not the same as the current one, close it
-            if (currentlyOpenCard && currentlyOpenCard[0] !== details[0]) {
-                currentlyOpenCard.hide();
-                // Reset the button text for the previously open card
+
+            // Remove existing details from any open card
+            if (currentlyOpenCard && currentlyOpenCard[0] !== cardBody[0]) {
+                currentlyOpenCard.find(".card-details").remove();
                 currentlyOpenCard.closest(".card").find(".expand-details").text("Sjá nánar");
+                currentlyOpenCard = null;
             }
-        
-            // Toggle the current card's details
-            details.toggle();
-        
-            // Update button text based on the visibility of the details
-            if (details.is(":visible")) {
-                button.text("Loka");
-                currentlyOpenCard = details; // Update the currently open card tracker
-            } else {
+
+            // Check if details are already appended
+            const existingDetails = cardBody.find(".card-details");
+            if (existingDetails.length) {
+                existingDetails.remove(); // Remove details if they exist
                 button.text("Sjá nánar");
                 currentlyOpenCard = null; // No card is open
+                return;
             }
+
+            // Create and append card details
+            const details = createCardDetails(item);
+            cardBody.append(details);
+            button.text("Loka"); // Update button text
+            currentlyOpenCard = cardBody; // Update the currently open card tracker
         });
 
         cardContainer.append(card);
     });
 }
 
+function createCardDetails(item) {
+    return $(`
+        <div class="card-details" style="display: block;">
+            <div class="details-row">
+                <span><strong>Hávaði:</strong> ${item.NOISE}</span>
+                <span><strong>Fegurð:</strong> ${item.VISUAL}</span>
+                <span><strong>Þyngd:</strong> ${item.WEIGHT}</span>
+            </div>
+            <div class="details-row">
+                <span><strong>sek/skot:</strong> ${item.SECONDS_PER_SHOT}</span>
+                <span><strong>kr/skot:</strong> ${item.PRICE_PER_SHOT}</span>
+            </div>
+            <div class="details-row">
+                <span><strong>kr/sek:</strong> ${item.PRICE_PER_SECOND}</span>
+                <span><strong>kr/kg:</strong> ${item.PRICE_PER_KG}</span>
+            </div>
+            <br>
+            <span>${item.DESCRIPTION}</span>
+            <iframe src="${convertToEmbedURL(item['VIDEO URL'])}" allowfullscreen class="card-video"></iframe>
+        </div>
+    `);
+}
+
 // Convert video URLs to embeddable format
 function convertToEmbedURL(url) {
-    if (url.includes("youtube.com")) {
+    if (!url) return null; // Return null for missing URLs
+    if (url.includes("youtube.com") && url.includes("watch?v=")) {
         return url.replace("watch?v=", "embed/");
+    } else if (url.includes("vimeo.com")) {
+        return url+"?h=7ccdcc0f2d"
     }
-    return url;
+    return null; // Return null for unsupported or invalid URLs
 }
+
 
 // Handle row selection for comparison
 function handleSelection() {
