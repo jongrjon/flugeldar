@@ -360,6 +360,10 @@ function renderComparisonModal() {
         { label: "Lýsing", key: "DESCRIPTION" },
     ];
 
+    // Calculate dynamic modal width based on number of items
+    const itemCount = selectedItemsArray.length;
+    const modalWidth = Math.min(100, itemCount * 15); // Max 100%, 15% per item
+
     // Build the table rows
     const tableRows = attributeRows
         .map(attr => {
@@ -372,7 +376,7 @@ function renderComparisonModal() {
                         // Handle arrays (e.g., Colors)
                         return `<td>${item[attr.key].join(", ")}</td>`;
                     } else if (attr.key === "PRICE") {
-                        // Handle arrays (e.g., Colors)
+                        // Format price
                         return `<td>${formatPriceIcelandic(item[attr.key])}</td>`;
                     }
                     return `<td>${item[attr.key] !== undefined ? item[attr.key] : "N/A"}</td>`;
@@ -400,7 +404,7 @@ function renderComparisonModal() {
 
     // Combine the header and body
     const comparisonTable = `
-        <table class="table" style="border: none;">
+        <table class="table is-narrow" style="border: none;">
             <thead>${headerRow}</thead>
             <tbody>${tableRows}</tbody>
         </table>
@@ -408,24 +412,19 @@ function renderComparisonModal() {
 
     // Render the table in the modal
     $("#comparisonContent").html(comparisonTable);
+    $("#compareModal .modal-content").css("max-width", `${modalWidth}%`); // Adjust modal width
     $("#compareModal").addClass("is-active");
     $("#compareButton").hide();
 }
 
 // Close the modal
 $(".modal-close, .modal-background").on("click", () => {
-    // Hide the comparison modal
     $("#compareModal").removeClass("is-active");
-
-    // Hide the compare button
-
-    // Clear all selected items and uncheck checkboxes
     selectedItems.clear();
     $("#dataBody input[type='checkbox']").prop("checked", false);
-
-    // Re-enable all checkboxes
     $("#dataBody input[type='checkbox']").prop("disabled", false);
 });
+
 
 // Sort the table by a specific field
 function sortTable(field, toggleOrder = true) {
