@@ -248,7 +248,7 @@
         "COLORS":[
             "Blár",
             "Rauður",
-            "Gylltur"
+            "Gull"
         ],
         "SHOTS":88,
         "DURATION":45,
@@ -546,7 +546,8 @@
         "COLORS":[
             "Rauður",
             "Grænn",
-            "Blár Gull",
+            "Blár",
+            "Gull",
             "Silfur"
         ],
         "SHOTS":70,
@@ -679,7 +680,7 @@
         "VIDEO URL":"https:\/\/player.vimeo.com\/video\/891411415",
         "COLORS":[
             "Rauður",
-            "Gylltur",
+            "Gull",
             "Silfur"
         ],
         "SHOTS":142,

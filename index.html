@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skottertur SL 24-25</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .details-row {
+            display: none;
+            background-color: #f9f9f9;
+        }
+        .details-row td {
+            padding: 10px;
+        }
+        .modal {
+            display: none;
+        }
+        .modal.is-active {
+            display: flex;
+        }
+        .modal-content {
+            max-width: 90%; /* Use most of the screen width */
+            width: auto; /* Allow flexible width */
+        }
+
+        .modal .table th, .table td {
+            border: none; /* Remove table borders */
+            text-align: left; /* Align text to the left for readability */
+        }
+
+        .modal .table th {
+            font-weight: bold;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .modal .table td {
+            vertical-align: top; /* Align text to the top for multi-line content */
+        }
+        .color-dropdown {
+            display: none;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .color-dropdown label {
+            display: block;
+        }
+        td.clickable-name {
+            cursor: pointer;
+            color: #3273dc;
+        }
+        td.clickable-name:hover {
+            color: #2750a5;
+        }
+        td.checkbox-cell {
+            cursor: pointer;
+        }
+        .name-cell:hover{
+            color:red;
+        }
+        .range-slider {
+            position: relative;
+            height: 4px;
+            background-color: #ddd;
+            margin: 20px 0;
+        }
+        .range-slider input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            -webkit-appearance: none;
+            pointer-events: none;
+        }
+        .range-slider input[type="range"]::-webkit-slider-thumb {
+            pointer-events: all;
+            width: 14px;
+            height: 14px;
+            background-color: #3273dc; /* Bulma primary color */
+            border-radius: 50%;
+            -webkit-appearance: none;
+        }
+        .range-slider input[type="range"]::-moz-range-thumb {
+            pointer-events: all;
+            width: 14px;
+            height: 14px;
+            background-color: #3273dc;
+            border-radius: 50%;
+        }
+        .range-slider input[type="range"]::-ms-thumb {
+            pointer-events: all;
+            width: 14px;
+            height: 14px;
+            background-color: #3273dc;
+            border-radius: 50%;
+        }
+        #compareButton {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: none;
+        }
+        .details-row iframe.detail-video {
+            width: 100%; /* Full width */
+            aspect-ratio: 16 / 9; /* Enforces 16:9 aspect ratio */
+            border: none;
+        }
+
+        .details-row img.detail-image {
+            width: 100%; /* Full width of the container */
+            height: auto; /* Allow scaling */
+            aspect-ratio: 16 / 9; /* Match video aspect ratio */
+            object-fit:scale-down; /* Ensures the image fills the space proportionally */
+            max-height: 300px; /* Optional: Cap the height */
+        }
+
+        .details-row .box {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #ffffff;
+        }
+        .sort-icon {
+            margin-left: 8px;
+            opacity: 0.5;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .sort-icon[data-active="true"] {
+            opacity: 1;
+        }
+
+
+    </style>
+</head>
+<body>
+    <section class="section">
+        <h1 class="title has-text-centered">Yfirlit yfir skottertur SL 24-25</h1>
+        <div class="notification is-info is-light">
+            <ul>
+                <li><strong>Smelltu á dálkana</strong> til að breyta röðinni</li>
+                <li><strong>Notaðu síurnar</strong> eða leitina til að fækka vörum í töflunni</li> 
+                <li><strong>Veldu allt að 4 vörur</strong> og berðu þær saman</li>
+                <li><strong>Smelltu á nöfnin</strong> til að sjá myndir, myndbönd og frekari upplýsingar um hverja vöru!</li>
+            </ul>
+            <h2 class="subtitle has-text-centered mt-4">Gleðilegt nýtt ár!</h2>
+        </div>
+        <!-- Filters Section -->
+        <div class="field is-grouped">
+            <div class="field">
+                <label class="label">Verðbil:</label>
+                <div class="control">
+                    <div class="range-slider">
+                        <input type="range" id="minPrice" min="0" max="100000" value="0">
+                        <input type="range" id="maxPrice" min="0" max="100000" value="100000">
+                    </div>
+                    <div id="priceRangeDisplay" class="mt-2">
+                        Verð:
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Leita:</label>
+                <div class="control">
+                    <input id="searchBox" type="text" class="input" placeholder="Leitaðu eftir nafni, lýsingu eða öðru...">
+                </div>
+            </div>
+            <div class="color-filter">
+                <label class="label">Litir:</label>
+                <button class="button is-small" id="toggleColorDropdown">Velja</button>
+                <div id="colorDropdown" class="color-dropdown"></div>
+            </div>
+        </div>
+    </section>
+    <section>
+        <!-- Data Table -->
+        <table class="table is-hoverable is-fullwidth">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th onclick="sortTable('ID')">ID <i class="fas sort-icon" data-field="ID"></i></th>
+                    <th onclick="sortTable('NAME')">Nafn <i class="fas sort-icon" data-field="NAME"></i></th>
+                    <th onclick="sortTable('PRICE')">Verð <i class="fas sort-icon" data-field="PRICE"></i></th>
+                    <th>Litir</th>
+                    <th onclick="sortTable('SHOTS')">Skot<i class="fas sort-icon" data-field="SHOTS"></i></th>
+                    <th onclick="sortTable('DURATION')">Lengd(sek)<i class="fas sort-icon" data-field="DURATION"></i></th>
+                    <th onclick="sortTable('NOISE')">Hávaði<i class="fas sort-icon" data-field="NOISE"></i></th>
+                    <th onclick="sortTable('VISUAL')">Fegurð<i class="fas sort-icon" data-field="VISUAL"></i></th>
+                    <th onclick="sortTable('WEIGHT')">Þyngd<i class="fas sort-icon" data-field="WEIGHT"></i></th>
+                    <th onclick="sortTable('SECONDS_PER_SHOT')">Sek/Skot<i class="fas sort-icon" data-field="SECONDS_PER_SHOT"></i></th>
+                    <th onclick="sortTable('PRICE_PER_SHOT')">Verð/Skot<i class="fas sort-icon" data-field="PRICE_PER_SHOT"></i></th>
+                    <th onclick="sortTable('PRICE_PER_SECOND')">Verð/Sek <i class="fas sort-icon" data-field="PRICE_PER_SECOND"></i></th>
+                    <th onclick="sortTable('PRICE_PER_KG')">Verð/KG <i class="fas sort-icon" data-field="PRICE_PER_KG"></i></th>
+                </tr>
+            </thead>
+            <tbody id="dataBody">
+                <!-- Rows will be dynamically injected -->
+            </tbody>
+        </table>
+
+        <button id="compareButton" class="button is-primary" style="display: none;">Bera saman</button>
+    </section>
+
+    <!-- Modal for Comparison -->
+    <div id="compareModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box">
+                <div id="comparisonContent"></div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong><a href="mailto:jhek@jhek.is">jhek@jhek.is</a></strong> 
+                © 2024.
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
