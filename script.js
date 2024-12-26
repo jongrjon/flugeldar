@@ -110,6 +110,7 @@ function applySearchFilter() {
     filteredData = data.filter(item => {
         // Check if the query matches any relevant fields
         return (
+            item.ID?.toString().includes(query)||
             item.NAME.toLowerCase().includes(query) ||
             item.DESCRIPTION.toLowerCase().includes(query) ||
             item.COLORS.some(color => color.toLowerCase().includes(query)) ||
