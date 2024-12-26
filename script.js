@@ -70,17 +70,58 @@ function populateColorDropdown() {
     const allColors = new Set(data.flatMap(item => item.COLORS));
 
     dropdown.empty();
+
+    // Add "Hreinsa" and "Velja Allt" buttons
+    const clearButton = $('<button class="button is-small is-danger">Hreinsa</button>');
+    const selectAllButton = $('<button class="button is-small is-primary">Velja Allt</button>');
+
+    clearButton.on("click", () => {
+        dropdown.find("input[type='checkbox']").prop("checked", false);
+        selectedColors.clear();
+        applyFilters(); // Reapply filters after clearing
+    });
+
+    selectAllButton.on("click", () => {
+        dropdown.find("input[type='checkbox']").prop("checked", true);
+        selectedColors.clear();
+        allColors.forEach(color => selectedColors.add(color));
+        applyFilters(); // Reapply filters after selecting all
+    });
+
+    dropdown.append(clearButton, selectAllButton);
+
+    // Add checkboxes for each color
     allColors.forEach(color => {
         const label = $(`<label><input type="checkbox" value="${color}" checked> ${color}</label>`);
-        label.find("input").on("change", applyFilters);
+        label.find("input").on("change", function () {
+            if (this.checked) {
+                selectedColors.add(color);
+            } else {
+                selectedColors.delete(color);
+            }
+            applyFilters(); // Reapply filters on individual checkbox change
+        });
         dropdown.append(label);
-        selectedColors.add(color);
     });
 }
 
+
 // Toggle the color dropdown
-$("#toggleColorDropdown").on("click", () => {
+$("#toggleColorDropdown").on("click", (event) => {
+    event.stopPropagation(); // Prevent the click from bubbling to the document
     $("#colorDropdown").toggle();
+});
+
+// Close the dropdown when clicking outside
+$(document).on("click", (event) => {
+    const dropdown = $("#colorDropdown");
+    const button = $("#toggleColorDropdown");
+
+    // Check if the click is outside the dropdown or the button
+    if (!dropdown.is(event.target) && dropdown.has(event.target).length === 0 && 
+        !button.is(event.target) && button.has(event.target).length === 0) {
+        dropdown.hide(); // Hide the dropdown
+    }
 });
 
 // Apply filters and update the table
