@@ -21,7 +21,6 @@ async function loadData() {
     applyFilters();
 }
 
-// Initialize the double range slider
 function initializeDoubleRangeSlider() {
     const minSlider = document.getElementById("minPrice");
     const maxSlider = document.getElementById("maxPrice");
@@ -30,6 +29,10 @@ function initializeDoubleRangeSlider() {
     // Dynamically determine the min and max price
     const minPriceValue = Math.min(...data.map(item => item.PRICE));
     const maxPriceValue = Math.max(...data.map(item => item.PRICE));
+    const sliderRange = maxPriceValue - minPriceValue;
+
+    // Set the minimum spacing to 10% of the range
+    const minSpacing = Math.round(sliderRange * 0.1);
 
     // Set the slider attributes dynamically
     minSlider.min = minPriceValue;
@@ -44,17 +47,27 @@ function initializeDoubleRangeSlider() {
     updatePriceRangeDisplay(minPriceValue, maxPriceValue);
 
     minSlider.addEventListener("input", () => {
-        if (parseInt(minSlider.value) >= parseInt(maxSlider.value)) {
-            minSlider.value = maxSlider.value - 1;
+        const minValue = parseInt(minSlider.value);
+        const maxValue = parseInt(maxSlider.value);
+
+        // Enforce minimum spacing
+        if (minValue >= maxValue - minSpacing) {
+            minSlider.value = maxValue - minSpacing;
         }
+
         updatePriceRangeDisplay(minSlider.value, maxSlider.value);
         applyFilters();
     });
 
     maxSlider.addEventListener("input", () => {
-        if (parseInt(maxSlider.value) <= parseInt(minSlider.value)) {
-            maxSlider.value = parseInt(minSlider.value) + 1;
+        const minValue = parseInt(minSlider.value);
+        const maxValue = parseInt(maxSlider.value);
+
+        // Enforce minimum spacing
+        if (maxValue <= minValue + minSpacing) {
+            maxSlider.value = minValue + minSpacing;
         }
+
         updatePriceRangeDisplay(minSlider.value, maxSlider.value);
         applyFilters();
     });
@@ -480,13 +493,23 @@ function sortTable(field, toggleOrder = true) {
 
     // Perform the sort
     filteredData.sort((a, b) => {
-        if (a[field] > b[field]) return currentSortOrder === "asc" ? 1 : -1;
-        if (a[field] < b[field]) return currentSortOrder === "asc" ? -1 : 1;
+        const valueA = a[field];
+        const valueB = b[field];
+
+        // Check if field is a string for locale-aware comparison
+        if (typeof valueA === "string" && typeof valueB === "string") {
+            const comparison = valueA.localeCompare(valueB, "is"); // Use Icelandic locale
+            return currentSortOrder === "asc" ? comparison : -comparison;
+        }
+
+        // Default comparison for non-string fields
+        if (valueA > valueB) return currentSortOrder === "asc" ? 1 : -1;
+        if (valueA < valueB) return currentSortOrder === "asc" ? -1 : 1;
         return 0;
     });
 
-    updateSortIcons(field);
-    renderTable(filteredData);
+    updateSortIcons(field); // Update UI icons for the sorted column
+    renderTable(filteredData); // Re-render the table
 }
 
 function updateSortIcons(activeField) {
@@ -509,8 +532,10 @@ function updateSortIcons(activeField) {
     });
 }
 
-$("#sortDropdown .dropdown-trigger").on("click", function () {
-    $("#sortDropdown").toggleClass("is-active"); // Toggle the dropdown menu visibility
+// Toggle dropdown visibility
+$("#sortDropdown .dropdown-trigger").on("click", function (event) {
+    event.stopPropagation(); // Prevent event from bubbling to document
+    $("#sortDropdown").toggleClass("is-active");
 });
 
 // Sort items when an option is clicked
@@ -518,11 +543,27 @@ $("#sortDropdown .dropdown-item").on("click", function (event) {
     event.preventDefault(); // Prevent default link behavior
 
     const sortField = $(this).data("sort"); // Get the field to sort by
-    currentSortField = sortField; // Update the global sort field
-    currentSortOrder = "asc"; // Default to ascending order on mobile
 
-    sortTable(sortField); // Call the existing sort function for consistency
-    renderCards(filteredData); // Re-render cards to reflect new sorting
+    // If the selected field is the current sort field, toggle the order
+
+    // Call sorting function
+    sortTable(sortField);
+    renderCards(filteredData);
+
+    // Close the dropdown after selecting a sort field
+    $("#sortDropdown").removeClass("is-active");
+});
+
+// Close the dropdown when clicking outside
+$(document).on("click", function (event) {
+    const dropdown = $("#sortDropdown");
+    const button = $("#sortDropdown .dropdown-trigger");
+
+    // Close the dropdown if the click is outside the dropdown and the button
+    if (!dropdown.is(event.target) && dropdown.has(event.target).length === 0 &&
+        !button.is(event.target) && button.has(event.target).length === 0) {
+        dropdown.removeClass("is-active");
+    }
 });
 
 // Initialize the app
