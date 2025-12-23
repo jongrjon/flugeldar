@@ -12,7 +12,7 @@ function formatPriceIcelandic(price) {
 
 // Load JSON data
 async function loadData() {
-    const response = await fetch("2425.json");
+    const response = await fetch("2526.json");
     data = await response.json();
     filteredData = [...data];
 
